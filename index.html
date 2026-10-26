@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pop the Dot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Pop the Dot</h1>
+        <p class="tagline">How many dots can you pop in 30 seconds?</p>
+      </div>
+      <div class="stats" aria-label="Game stats">
+        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+        <div class="stat"><span>Time</span><strong id="time">30</strong></div>
+        <div class="stat"><span>Best</span><strong id="best">0</strong></div>
+      </div>
+    </header>
+
+    <section id="play-area" aria-label="Game area">
+      <div id="message">
+        <p id="message-text">Tap the pink dot as quickly as you can.</p>
+        <button id="start" type="button">Start game</button>
+      </div>
+      <button id="target" type="button" aria-label="Pop the dot"></button>
+    </section>
+  </main>
+
+  <script>
+    const playArea = document.querySelector("#play-area");
+    const target = document.querySelector("#target");
+    const startButton = document.querySelector("#start");
+    const message = document.querySelector("#message");
+    const messageText = document.querySelector("#message-text");
+    const scoreDisplay = document.querySelector("#score");
+    const timeDisplay = document.querySelector("#time");
+    const bestDisplay = document.querySelector("#best");
+
+    let score = 0;
+    let timeLeft = 30;
+    let timerId;
+    let best = Number(localStorage.getItem("pop-the-dot-best") || 0);
+    bestDisplay.textContent = best;
+
+    function moveTarget() {
+      const maxX = playArea.clientWidth - target.offsetWidth;
+      const maxY = playArea.clientHeight - target.offsetHeight;
+      target.style.left = `${Math.random() * maxX}px`;
+      target.style.top = `${Math.random() * maxY}px`;
+    }
+
+    function endGame() {
+      clearInterval(timerId);
+      target.style.display = "none";
+      messageText.textContent = `Time's up! You popped ${score} ${score === 1 ? "dot" : "dots"}.`;
+      startButton.textContent = "Play again";
+      message.hidden = false;
+    }
+
+    function startGame() {
+      clearInterval(timerId);
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = score;
+      timeDisplay.textContent = timeLeft;
+      message.hidden = true;
+      target.style.display = "block";
+      moveTarget();
+
+      timerId = setInterval(() => {
+        timeLeft -= 1;
+        timeDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    target.addEventListener("click", () => {
+      score += 1;
+      scoreDisplay.textContent = score;
+      if (score > best) {
+        best = score;
+        bestDisplay.textContent = best;
+        localStorage.setItem("pop-the-dot-best", best);
+      }
+      moveTarget();
+    });
+
+    startButton.addEventListener("click", startGame);
+    window.addEventListener("resize", () => {
+      if (target.style.display === "block") moveTarget();
+    });
+  </script>
+</body>
+</html>
